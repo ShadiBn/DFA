@@ -126,47 +126,40 @@ public class DFA {
         int finalStateSize = newFinalStates.size();
         // iterating over new final states
         for (int i = 0; i < finalStateSize; i++) {
-            for (int j = i + 1; j < finalStateSize + 1; j++) {
+            for (int j = i + 1; j < finalStateSize; j++) {
                 String state = newFinalStates.get(i);
                 String otherState = newFinalStates.get(j);
-                // if both states have same transition
+                // if both states have the same transition
                 if (transitions.get(state).equals(transitions.get(otherState))) {
-                    // replace other state with current state
+                    // replace other state with the current state
                     replaceState(otherState, state);
                     // System.out.println("replaced " + otherState + " with " + state);
                     transitions.remove(otherState);
                     newFinalStates.remove(otherState);
                     finalStateSize--;
+                    j--; // Adjust the index after removal
                 }
-
             }
         }
 
-        finalStates = new HashSet<String>(newFinalStates);
-        // System.out.println("Final states after replacing: " + finalStates);
-
-        System.out.println("Replacing non final states having same transition...");
-
-        // step 4 : replace non final states having common transition with one state
-        int nonFinalStateSize = newFinalStates.size();
+            // step 4 : replace non-final states having common transition with one state
+        int nonFinalStateSize = nonFinalStates.size();
         // iterating over new final states
         for (int i = 0; i < nonFinalStateSize; i++) {
-            for (int j = i + 1; j < nonFinalStateSize + 1; j++) {
+            for (int j = i + 1; j < nonFinalStateSize; j++) {
                 String state = nonFinalStates.get(i);
                 String otherState = nonFinalStates.get(j);
-                // if both states have same transition
+                // if both states have the same transition
                 if (transitions.get(state).equals(transitions.get(otherState))) {
-                    // replace other state with current state
+                    // replace other state with the current state
                     replaceState(otherState, state);
                     // System.out.println("replaced " + otherState + " with " + state);
                     transitions.remove(otherState);
                     nonFinalStates.remove(otherState);
                     nonFinalStateSize--;
+                    j--; // Adjust the index after removal
                 }
-
             }
         }
-
     }
-
 }
