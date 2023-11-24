@@ -1,8 +1,8 @@
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Scanner;
 import java.util.Set;
+import java.util.Scanner;
 
 public class DFATestGenerateString {
 
@@ -39,10 +39,22 @@ public class DFATestGenerateString {
 
         DFA dfa = new DFA(startingState, finalStates, transitions);
 
-        // Generate a string without user input
-        System.out.println("Generating a random valid string...");
-        dfa.generateString();
-        //System.out.println("Generated String: " + generatedString);
+        // Generate strings without user input
+        System.out.println("Generating random strings...");
+        String[] generatedStrings = dfa.generateStrings();
+
+        //Store generated strings in variables
+        String Accepted1 = generatedStrings[0];
+        String Accepted2 = generatedStrings[1];
+        String Rejected1 = generatedStrings[2];
+        String Rejected2 = generatedStrings[3];
+
+        //Display the generated strings
+        System.out.println("Accepted String 1: " + Accepted1);
+        System.out.println("Accepted String 2: " + Accepted2);
+        System.out.println("Not Accepted String 1: " + Rejected1);
+        System.out.println("Not Accepted String 2: " + Rejected2);
+
 
         // Consume any remaining newline characters in the input buffer
         sc.nextLine();

@@ -163,60 +163,53 @@ public class DFA {
         }
     }
 
-    public String generateString() {
-        String acceptedString1 = generateAcceptedString();
-        String acceptedString2 = generateAcceptedString();
-
-        String notAcceptedString1 = generateNotAcceptedString();
-        String notAcceptedString2 = generateNotAcceptedString();
-
-        System.out.println("Accepted String 1: " + acceptedString1);
-        System.out.println("Accepted String 2: " + acceptedString2);
-        System.out.println("Not Accepted String 1: " + notAcceptedString1);
-        System.out.println("Not Accepted String 2: " + notAcceptedString2);
-
-        // Returning one of the accepted strings
-        return acceptedString1;
+    public String[] generateStrings() {
+        String acceptedString1 = generateAcceptedString(6);
+        String acceptedString2 = generateAcceptedString(6);
+    
+        String notAcceptedString1 = generateNotAcceptedString(6);
+        String notAcceptedString2 = generateNotAcceptedString(6);
+    
+        return new String[]{acceptedString1, acceptedString2, notAcceptedString1, notAcceptedString2};
     }
-
-    private String generateAcceptedString() {
+    
+    
+    private String generateAcceptedString(int minLength) {
         StringBuilder generatedString = new StringBuilder();
         String currentState = startingState;
-
-        while (!finalStates.contains(currentState)) {
+    
+        while (!finalStates.contains(currentState) || generatedString.length() < minLength) {
             HashMap<String, String> currentStateTransitions = transitions.get(currentState);
             String[] inputs = currentStateTransitions.keySet().toArray(new String[0]);
             String randomInput = inputs[(int) (Math.random() * inputs.length)];
             generatedString.append(randomInput);
             currentState = currentStateTransitions.get(randomInput);
         }
-
+    
         return generatedString.toString();
     }
-
-    private String generateNotAcceptedString() {
+    
+    private String generateNotAcceptedString(int minLength) {
         StringBuilder generatedString = new StringBuilder();
         String currentState = startingState;
-
-        while (true) {
+    
+        while (generatedString.length() < minLength || finalStates.contains(currentState)) {
             HashMap<String, String> currentStateTransitions = transitions.get(currentState);
             String[] inputs = currentStateTransitions.keySet().toArray(new String[0]);
             String randomInput = inputs[(int) (Math.random() * inputs.length)];
             generatedString.append(randomInput);
             currentState = currentStateTransitions.get(randomInput);
-
+    
             // If the generated string reaches a final state, restart the generation
             if (finalStates.contains(currentState)) {
                 generatedString = new StringBuilder();
                 currentState = startingState;
-            } else if (generatedString.length() > 10) {
-                // If the generated string becomes too long, break to avoid infinite loop
-                break;
             }
         }
-
+    
         return generatedString.toString();
     }
+    
 
 
 }

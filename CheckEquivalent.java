@@ -1,113 +1,77 @@
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Scanner;
+import java.util.Set;
 
 public class CheckEquivalent {
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
-        System.out.println("Enter details for DFA 1:");
-        DFA dfa1 = createDFA(sc);
+        // Input for the first DFA
+        DFA dfa1 = getDFAInput(sc, "Enter inputs for the first DFA");
 
-        System.out.println("Enter details for DFA 2:");
-        DFA dfa2 = createDFA(sc);
+        // Input for the second DFA
+        DFA dfa2 = getDFAInput(sc, "Enter inputs for the second DFA");
 
-        // Check if DFAs are equivalent
-        boolean areEquivalent = areDFAsEquivalent(dfa1, dfa2);
-
-        // Display the result
-        if (areEquivalent) {
-            System.out.println("DFAs are equivalent.");
-        } else {
-            System.out.println("DFAs are not equivalent.");
-        }
-
-        sc.close();
-    }
-
-    // Other methods...
-
-    private static boolean areDFAsEquivalent(DFA dfa1, DFA dfa2) {
+        // Minimize both DFAs
         dfa1.minimizeDFA();
         dfa2.minimizeDFA();
 
-        Set<String> alphabet = dfa1.getTransitions().keySet();
+        // Generate accepted and rejected strings for both DFAs
+        String[] dfa1Strings = dfa1.generateStrings();
+        String[] dfa2Strings = dfa2.generateStrings();
 
-        // Create sets for distinguishing and non-distinguishing states
-        Set<String> distinguishing = new HashSet<>(dfa1.getFinalStates());
-        Set<String> nonDistinguishing = new HashSet<>(dfa2.getFinalStates());
-        nonDistinguishing.addAll(dfa1.getReachableStates(dfa1.getStartingState(), new HashSet<>()));
-        nonDistinguishing.removeAll(distinguishing);
+        System.out.println("Accepted String 1: " + dfa1Strings[0]);
+        System.out.println("Accepted String 2: " + dfa2Strings[0]);
+        System.out.println("Not Accepted String 1: " + dfa1Strings[2]);
+        System.out.println("Not Accepted String 2: " + dfa2Strings[2]);
 
-        // Use a queue for processing states
-        Queue<Pair<String, String>> queue = new LinkedList<>();
+        // Validate accepted and rejected strings for equivalence
+        validateEquivalence(dfa1, dfa2, dfa1Strings[0], dfa2Strings[0]);
+        validateEquivalence(dfa1, dfa2, dfa1Strings[2], dfa2Strings[2]);
 
-        // Initialize the queue with pairs of distinguishing and non-distinguishing states
-        for (String a : alphabet) {
-            for (String b : nonDistinguishing) {
-                queue.add(new Pair<>(dfa1.getTransitions().get(dfa1.getStartingState()).get(a),
-                        dfa2.getTransitions().get(dfa2.getStartingState()).get(a + "_" + b)));
+        // Close the scanner
+        sc.close();
+    }
+
+    private static DFA getDFAInput(Scanner sc, String message) {
+        System.out.println(message);
+
+        String inputString = Utility.getInput("Enter valid inputs: ", sc);
+        Set<String> validInputs = new HashSet<>(Arrays.asList(inputString.split(",")));
+
+        String statesInput = Utility.getInput("Enter states: ", sc);
+        Set<String> states = new HashSet<>(Arrays.asList(statesInput.split(",")));
+
+        String startingState = Utility.getInput("Enter starting state: ", sc);
+
+        String finalStatesInput = Utility.getInput("Enter all final states: ", sc);
+        Set<String> finalStates = new HashSet<>(Arrays.asList(finalStatesInput.split(",")));
+
+        HashMap<String, HashMap<String, String>> transitions = new HashMap<>();
+
+        for (String state : states) {
+            HashMap<String, String> transition = new HashMap<>();
+            for (String validInput : validInputs) {
+                String nextState = Utility.getInput(
+                        String.format("Enter transition state for state '%s' with input '%s': ", state, validInput), sc);
+                transition.put(validInput, nextState);
             }
+            transitions.put(state, transition);
         }
 
-        // Process the pairs using the Nearly Linear algorithm
-        while (!queue.isEmpty()) {
-            Pair<String, String> pair = queue.poll();
-            String state1 = pair.getFirst();
-            String state2 = pair.getSecond();
-
-            for (String a : alphabet) {
-                String nextState1 = dfa1.getTransitions().get(state1).get(a);
-                String nextState2 = dfa2.getTransitions().get(state2).get(a);
-
-                Pair<String, String> nextPair = new Pair<>(nextState1, nextState2);
-
-                if (!nextState1.equals(nextState2) && !distinguishing.contains(nextState1) && !distinguishing.contains(nextState2)) {
-                    distinguishing.add(nextState1);
-                    distinguishing.add(nextState2);
-                    queue.addAll(getPairs(nextPair, dfa1, dfa2, alphabet));
-                } else if (distinguishing.contains(nextState1) && distinguishing.contains(nextState2)) {
-                    queue.addAll(getPairs(nextPair, dfa1, dfa2, alphabet));
-                }
-            }
-        }
-
-        // If the initial states are in the same set, the DFAs are equivalent
-        Set<String> initialStateClass1 = findEquivalenceClass(dfa1.getStartingState(), distinguishing);
-        Set<String> initialStateClass2 = findEquivalenceClass(dfa2.getStartingState(), distinguishing);
-
-        return initialStateClass1.equals(initialStateClass2);
+        return new DFA(startingState, finalStates, transitions);
     }
 
-    // Other helper methods...
+    private static void validateEquivalence(DFA dfa1, DFA dfa2, String string1, String string2) {
+        System.out.println("Validating equivalence for strings:");
+        System.out.println("String 1: " + string1);
+        System.out.println("String 2: " + string2);
 
-    private static List<Pair<String, String>> getPairs(Pair<String, String> pair, DFA dfa1, DFA dfa2, Set<String> alphabet) {
-        List<Pair<String, String>> pairs = new ArrayList<>();
+        boolean isEquivalent = dfa1.validateString(string1).equals(dfa2.validateString(string2));
 
-        for (String a : alphabet) {
-            String nextState1 = dfa1.getTransitions().get(pair.getFirst()).get(a);
-            String nextState2 = dfa2.getTransitions().get(pair.getSecond()).get(a);
-
-            pairs.add(new Pair<>(nextState1, nextState2));
-        }
-
-        return pairs;
-    }
-}
-
-class Pair<T, U> {
-    private final T first;
-    private final U second;
-
-    public Pair(T first, U second) {
-        this.first = first;
-        this.second = second;
-    }
-
-    public T getFirst() {
-        return first;
-    }
-
-    public U getSecond() {
-        return second;
+        System.out.println("Result: Strings are " + (isEquivalent ? "equivalent" : "not equivalent"));
     }
 }
