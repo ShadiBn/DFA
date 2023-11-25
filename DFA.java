@@ -19,6 +19,7 @@ public class DFA {
         this.transitions = transitions;
     }
 
+
     public Set<String> getFinalStates() {
         return finalStates;
     }
@@ -27,39 +28,40 @@ public class DFA {
         return transitions;
     }
 
-    public void validateString(String validateString) {
-
+    public int validateString(String validateString) {
         String currentState = startingState;
-
-        // iterating over the validateString string
+        int counter = 0;
+        // Iterating over the validateString string
         for (int i = 0; i < validateString.length(); i++) {
             char c = validateString.charAt(i);
             HashMap<String, String> currentStateTransition = transitions.get(currentState);
-
+    
             String nextState = currentStateTransition.get(String.valueOf(c));
-
-            // is transition for current state with input 'c' not present
+    
+            // If transition for the current state with input 'c' is not present
             if (nextState == null) {
-                // input is invalid
-                Utility.showError(
-                        String.format("Your string contain value '%c' which is not present in input set", c));
-                return;
+                // Input is invalid
+                Utility.showError(String.format("Your string contains the value '%c', which is not present in the input set", c));
+                return -1;
             }
-            // now we have the next state as a current state for next iteration
+    
+            // Now we have the next state as the current state for the next iteration
             currentState = nextState;
+            counter++ ;
         }
-
-        // if current state is in final state then string is valid
+    
+        // If the current state is in the final state, then the string is valid
         if (finalStates.contains(currentState)) {
             System.out.println("Output: Your string is valid");
+            return 0; // Return 0 to indicate success
+        } else {
+            // String ends at a state which is not a final state
+            Utility.showError(String.format("Your string ends at state '%s', which is not a final state", currentState));
+            return counter; // Return 1 to indicate False
         }
-        // string ends at state which is not a final state
-        else {
-            Utility.showError(
-                    String.format("Your string  ends at state '%s' which is not a final state", currentState));
-        }
-
     }
+    
+    
 
     public Set<String> getReachableStates(String state, Set<String> reachableStates) {
 
@@ -89,6 +91,7 @@ public class DFA {
             }
         }
     }
+
 
     public void minimizeDFA() {
         System.out.println("Minimizing DFA...");

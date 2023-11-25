@@ -19,35 +19,49 @@ public class CheckEquivalent {
         dfa1.minimizeDFA();
         dfa2.minimizeDFA();
 
-        // Generate accepted and rejected strings for both DFAs
+
         String[] dfa1Strings = dfa1.generateStrings();
-        String[] dfa2Strings = dfa2.generateStrings();
+        // Generate accepted and rejected strings for DFA1
+        String acceptedString1 = dfa1Strings[0];
+        String acceptedString2 = dfa1Strings[1];
+        String notAcceptedString1 = dfa1Strings[2];
+        String notAcceptedString2 = dfa1Strings[3];
 
-        System.out.println("Accepted String 1: " + dfa1Strings[0]);
-        System.out.println("Accepted String 2: " + dfa2Strings[0]);
-        System.out.println("Not Accepted String 1: " + dfa1Strings[2]);
-        System.out.println("Not Accepted String 2: " + dfa2Strings[2]);
+        // Validate strings for DFA2
+        int accepted1InDFA2 = dfa2.validateString(acceptedString1);
+        int accepted2InDFA2 = dfa2.validateString(acceptedString2);
+        int notAccepted1InDFA2 = dfa2.validateString(notAcceptedString1);
+        int notAccepted2InDFA2 = dfa2.validateString(notAcceptedString2);
 
-        // Validate accepted and rejected strings for equivalence
-        validateEquivalence(dfa1, dfa2, dfa1Strings[0], dfa2Strings[0]);
-        validateEquivalence(dfa1, dfa2, dfa1Strings[2], dfa2Strings[2]);
+        // Check equivalence based on the specified criteria
+        boolean areEquivalent = accepted1InDFA2 == 0 && accepted2InDFA2 == 0 &&
+                notAccepted1InDFA2 == notAccepted2InDFA2 &&
+                checkStartingFinalStateEquivalence(dfa1, dfa2);
+
+        System.out.println("DFAs are " + (areEquivalent ? "equivalent" : "not equivalent"));
 
         // Close the scanner
         sc.close();
     }
 
+    private static boolean checkStartingFinalStateEquivalence(DFA dfa1, DFA dfa2) {
+        // Check if one DFA has starting state as a final state, the other should have the same property
+        return (dfa1.finalStates.contains(dfa1.startingState) && dfa2.finalStates.contains(dfa2.startingState))
+                || (!dfa1.finalStates.contains(dfa1.startingState) && !dfa2.finalStates.contains(dfa2.startingState));
+    }
+
     private static DFA getDFAInput(Scanner sc, String message) {
         System.out.println(message);
 
-        String inputString = Utility.getInput("Enter valid inputs: ", sc);
+        String inputString = Utility.getInput("Enter valid inputs (comma-separated): ", sc);
         Set<String> validInputs = new HashSet<>(Arrays.asList(inputString.split(",")));
 
-        String statesInput = Utility.getInput("Enter states: ", sc);
+        String statesInput = Utility.getInput("Enter states (comma-separated): ", sc);
         Set<String> states = new HashSet<>(Arrays.asList(statesInput.split(",")));
 
         String startingState = Utility.getInput("Enter starting state: ", sc);
 
-        String finalStatesInput = Utility.getInput("Enter all final states: ", sc);
+        String finalStatesInput = Utility.getInput("Enter all final states (comma-separated): ", sc);
         Set<String> finalStates = new HashSet<>(Arrays.asList(finalStatesInput.split(",")));
 
         HashMap<String, HashMap<String, String>> transitions = new HashMap<>();
@@ -63,15 +77,5 @@ public class CheckEquivalent {
         }
 
         return new DFA(startingState, finalStates, transitions);
-    }
-
-    private static void validateEquivalence(DFA dfa1, DFA dfa2, String string1, String string2) {
-        System.out.println("Validating equivalence for strings:");
-        System.out.println("String 1: " + string1);
-        System.out.println("String 2: " + string2);
-
-        boolean isEquivalent = dfa1.validateString(string1).equals(dfa2.validateString(string2));
-
-        System.out.println("Result: Strings are " + (isEquivalent ? "equivalent" : "not equivalent"));
     }
 }
