@@ -59,16 +59,18 @@ public class DFATestGenerateString {
 
         // Store generated strings in variables
         String Accepted1 = generatedStrings[0];
-        String Accepted2 = generatedStrings[1];
-        String Rejected1 = generatedStrings[2];
-        String Rejected2 = generatedStrings[3];
-
-        // Display the generated strings
         System.out.println("Accepted String 1: " + Accepted1);
+
+        String Accepted2 = generatedStrings[1];
         System.out.println("Accepted String 2: " + Accepted2);
+
+        String Rejected1 = generatedStrings[2];
         System.out.println("Not Accepted String 1: " + Rejected1);
+
+        String Rejected2 = generatedStrings[3];
         System.out.println("Not Accepted String 2: " + Rejected2);
 
+       
         // Consume any remaining newline characters in the input buffer
         sc.nextLine();
 

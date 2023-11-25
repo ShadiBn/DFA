@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class DFA {
@@ -167,6 +168,11 @@ public class DFA {
     }
 
     public String[] generateStrings() {
+        // Check if there is only one state, and it is both the starting and final state
+        if (finalStates.size() == 1 && finalStates.contains(startingState) && transitions.size() == 1) {
+            return generateSpecialCaseStrings(4); // Change the count as needed
+        }
+    
         String acceptedString1 = generateAcceptedString(6);
         String acceptedString2 = generateAcceptedString(6);
     
@@ -175,6 +181,33 @@ public class DFA {
     
         return new String[]{acceptedString1, acceptedString2, notAcceptedString1, notAcceptedString2};
     }
+    
+    
+
+    private String[] generateSpecialCaseStrings(int count) {
+    List<String> generatedStrings = new ArrayList<>();
+
+    for (int i = 0; i < count; i++) {
+        StringBuilder generatedString = new StringBuilder();
+        String currentState = startingState;
+
+        while (generatedString.length() < 6) {
+            HashMap<String, String> currentStateTransitions = transitions.get(currentState);
+            if (currentStateTransitions == null || currentStateTransitions.isEmpty()) {
+                break; // Handle the case when there are no transitions for the current state
+            }
+            String[] inputs = currentStateTransitions.keySet().toArray(new String[0]);
+            String randomInput = inputs[(int) (Math.random() * inputs.length)];
+            generatedString.append(randomInput);
+            currentState = currentStateTransitions.get(randomInput);
+        }
+
+        generatedStrings.add(generatedString.toString());
+    }
+
+    return generatedStrings.toArray(new String[0]);
+}
+    
     
     
     private String generateAcceptedString(int minLength) {
