@@ -18,8 +18,15 @@ public class DFATestGenerateString {
         String statesInput = Utility.getInput(message, sc);
         Set<String> states = new HashSet<>(Arrays.asList(statesInput.split(",")));
 
-        message = "Enter starting state: ";
-        String startingState = Utility.getInput(message, sc);
+        String startingState = null;
+        // Ensure that the entered starting state is a valid state
+        while (startingState == null || !states.contains(startingState)) {
+            message = "Enter starting state: ";
+            startingState = Utility.getInput(message, sc);
+            if (!states.contains(startingState)) {
+                System.out.println("Invalid state. Please enter a valid state.");
+            }
+        }
 
         message = "Enter all final states: ";
         String finalStatesInput = Utility.getInput(message, sc);
@@ -31,7 +38,14 @@ public class DFATestGenerateString {
             HashMap<String, String> transition = new HashMap<>();
             for (String validInput : validInputs) {
                 message = String.format("Enter transition state for state '%s' with input '%s': ", state, validInput);
-                String nextState = Utility.getInput(message, sc);
+                String nextState = null;
+                // Ensure that the entered transition state is a valid state
+                while (nextState == null || !states.contains(nextState)) {
+                    nextState = Utility.getInput(message, sc);
+                    if (!states.contains(nextState)) {
+                        System.out.println("Invalid state. Please enter a valid state.");
+                    }
+                }
                 transition.put(validInput, nextState);
             }
             transitions.put(state, transition);
@@ -43,18 +57,17 @@ public class DFATestGenerateString {
         System.out.println("Generating random strings...");
         String[] generatedStrings = dfa.generateStrings();
 
-        //Store generated strings in variables
+        // Store generated strings in variables
         String Accepted1 = generatedStrings[0];
         String Accepted2 = generatedStrings[1];
         String Rejected1 = generatedStrings[2];
         String Rejected2 = generatedStrings[3];
 
-        //Display the generated strings
+        // Display the generated strings
         System.out.println("Accepted String 1: " + Accepted1);
         System.out.println("Accepted String 2: " + Accepted2);
         System.out.println("Not Accepted String 1: " + Rejected1);
         System.out.println("Not Accepted String 2: " + Rejected2);
-
 
         // Consume any remaining newline characters in the input buffer
         sc.nextLine();

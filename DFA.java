@@ -3,9 +3,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * DFA
- */
 public class DFA {
 
     String startingState;
@@ -19,6 +16,9 @@ public class DFA {
         this.transitions = transitions;
     }
 
+    public String getStartingState(){
+        return startingState;
+    }
 
     public Set<String> getFinalStates() {
         return finalStates;
@@ -196,22 +196,22 @@ public class DFA {
         StringBuilder generatedString = new StringBuilder();
         String currentState = startingState;
     
-        while (generatedString.length() < minLength || finalStates.contains(currentState)) {
+        while (generatedString.length() < minLength) {
             HashMap<String, String> currentStateTransitions = transitions.get(currentState);
             String[] inputs = currentStateTransitions.keySet().toArray(new String[0]);
             String randomInput = inputs[(int) (Math.random() * inputs.length)];
             generatedString.append(randomInput);
             currentState = currentStateTransitions.get(randomInput);
     
-            // If the generated string reaches a final state, restart the generation
+            // If the generated string reaches a final state, remove the last input and continue
             if (finalStates.contains(currentState)) {
-                generatedString = new StringBuilder();
-                currentState = startingState;
+                generatedString.deleteCharAt(generatedString.length() - 1);
             }
         }
     
         return generatedString.toString();
     }
+    
     
 
 
