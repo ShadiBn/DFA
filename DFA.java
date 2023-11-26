@@ -124,7 +124,10 @@ public class DFA {
             if (!mergedStates.contains(state)) {
                 for (String otherState : reachableStates) {
                     if (!state.equals(otherState) && !mergedStates.contains(otherState)) {
-                        if (transitionsEqual(transitions.get(state), transitions.get(otherState))) {
+                        // Check if the transitions have the same type (final or non-final) for all inputs
+                        // and if the states themselves have the same type
+                        if (transitionsSameType(transitions.get(state), transitions.get(otherState))
+                                && stateTypeSame(state, otherState)) {
                             // merge other state with the current state
                             replaceState(otherState, state, true); // Pass true to indicate same type requirement
                             // mark other state as merged
@@ -138,32 +141,45 @@ public class DFA {
         // Step 3: remove merged states
         transitions.keySet().removeAll(mergedStates);
     
+        // Update final states after minimization to include only existing states
+        finalStates.retainAll(transitions.keySet());
+    
+        // Display final states after minimization
         System.out.println("Minimized Transitions: " + transitions);
+        System.out.println("Final states after minimization: " + finalStates);
         System.out.println("New DFA after minimization:");
-        System.out.println("Final states: " + finalStates);
         System.out.println("Transitions: " + transitions);
     }
     
+    
+    // Helper function to check if the type of two states is the same (final or non-final)
+    private boolean stateTypeSame(String state1, String state2) {
+        boolean isFinalState1 = finalStates.contains(state1);
+        boolean isFinalState2 = finalStates.contains(state2);
+        return isFinalState1 == isFinalState2;
+    }
+    
 
-    public boolean transitionsEqual(HashMap<String, String> transition1, HashMap<String, String> transition2) {
-        if (transition1.size() != transition2.size()) {
-            return false;
-        }
-
+    public boolean transitionsSameType(HashMap<String, String> transition1, HashMap<String, String> transition2) {
+        // Iterate over the inputs in the transitions
         for (String input : transition1.keySet()) {
+            // Get the next states after applying the input for both transitions
             String nextState1 = transition1.get(input);
             String nextState2 = transition2.get(input);
-
+    
+            // Check if the next states have the same type (final or non-final)
             boolean isFinalState1 = finalStates.contains(nextState1);
             boolean isFinalState2 = finalStates.contains(nextState2);
-
+    
+            // If the type of the next states is different for the same input, transitions are not equal
             if (isFinalState1 != isFinalState2) {
                 return false;
             }
         }
-
+        // All input transitions have the same type (final or non-final) for both states
         return true;
     }
+    
 
     
     public String[] generateStrings() {
