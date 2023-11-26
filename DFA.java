@@ -81,41 +81,52 @@ public class DFA {
         return reachableStates;
     }
 
-    public void replaceState(String state, String replaceWith) {
+    public void replaceState(String state, String replaceWith, boolean sameType) {
         // replace state in transitions
         for (HashMap<String, String> currentStateTransition : transitions.values()) {
             for (Map.Entry<String, String> entry : currentStateTransition.entrySet()) {
                 String input = entry.getKey();
                 String nextState = entry.getValue();
+    
+                // Check if the states should be of the same type for merging
+                if (sameType) {
+                    boolean isFinalState = finalStates.contains(nextState);
+                    boolean isFinalReplaceWith = finalStates.contains(replaceWith);
+    
+                    if (isFinalState != isFinalReplaceWith) {
+                        continue; // Skip this transition if the types are different
+                    }
+                }
+    
                 if (nextState.equals(state)) {
                     currentStateTransition.put(input, replaceWith);
                 }
             }
         }
     }
-
+    
     public void minimizeDFA() {
         System.out.println("Minimizing DFA...");
         // get reachableStates states from start state
         Set<String> reachableStates = getReachableStates(startingState, new HashSet<>());
         System.out.println("Removing unreachable states from transitions...");
-
+    
         // Step 1: remove unreachable states from transitions
         transitions.entrySet().removeIf(entry -> !reachableStates.contains(entry.getKey()));
         System.out.println("Transitions after removing unreachable states: " + transitions);
-
+    
         System.out.println("Merging states with similar transitions...");
-
+    
         // Step 2: merge states with similar transitions
         ArrayList<String> mergedStates = new ArrayList<>();
-
+    
         for (String state : reachableStates) {
             if (!mergedStates.contains(state)) {
                 for (String otherState : reachableStates) {
                     if (!state.equals(otherState) && !mergedStates.contains(otherState)) {
                         if (transitionsEqual(transitions.get(state), transitions.get(otherState))) {
                             // merge other state with the current state
-                            replaceState(otherState, state);
+                            replaceState(otherState, state, true); // Pass true to indicate same type requirement
                             // mark other state as merged
                             mergedStates.add(otherState);
                         }
@@ -123,12 +134,16 @@ public class DFA {
                 }
             }
         }
-
+    
         // Step 3: remove merged states
         transitions.keySet().removeAll(mergedStates);
-
+    
         System.out.println("Minimized Transitions: " + transitions);
+        System.out.println("New DFA after minimization:");
+        System.out.println("Final states: " + finalStates);
+        System.out.println("Transitions: " + transitions);
     }
+    
 
     public boolean transitionsEqual(HashMap<String, String> transition1, HashMap<String, String> transition2) {
         if (transition1.size() != transition2.size()) {
