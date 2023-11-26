@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DFA {
@@ -9,7 +10,6 @@ public class DFA {
     String startingState;
     Set<String> finalStates;
     HashMap<String, HashMap<String, String>> transitions;
-
 
     public DFA(String startingState, Set<String> finalStates, HashMap<String, HashMap<String, String>> transitions) {
         this.startingState = startingState;
@@ -84,8 +84,9 @@ public class DFA {
     public void replaceState(String state, String replaceWith) {
         // replace state in transitions
         for (HashMap<String, String> currentStateTransition : transitions.values()) {
-            for (String input : currentStateTransition.keySet()) {
-                String nextState = currentStateTransition.get(input);
+            for (Map.Entry<String, String> entry : currentStateTransition.entrySet()) {
+                String input = entry.getKey();
+                String nextState = entry.getValue();
                 if (nextState.equals(state)) {
                     currentStateTransition.put(input, replaceWith);
                 }
@@ -93,80 +94,63 @@ public class DFA {
         }
     }
 
-
     public void minimizeDFA() {
         System.out.println("Minimizing DFA...");
         // get reachableStates states from start state
-        Set<String> reachableStates = getReachableStates(startingState, new HashSet<String>());
-        // System.out.println("Reachable states: " + reachableStates);
-
+        Set<String> reachableStates = getReachableStates(startingState, new HashSet<>());
         System.out.println("Removing unreachable states from transitions...");
 
-        // Step 1 : removed unreachable states from transitions
+        // Step 1: remove unreachable states from transitions
         transitions.entrySet().removeIf(entry -> !reachableStates.contains(entry.getKey()));
-        // System.out.println("Transitions after removing unreachable states: " +
-        // transitions);
+        System.out.println("Transitions after removing unreachable states: " + transitions);
 
-        System.out.println("Splitting transitions into final and non final states...");
+        System.out.println("Merging states with similar transitions...");
 
-        // step 2 : seperate final and non final states into two array
-        ArrayList<String> newFinalStates = new ArrayList<String>();
-        ArrayList<String> nonFinalStates = new ArrayList<String>();
+        // Step 2: merge states with similar transitions
+        ArrayList<String> mergedStates = new ArrayList<>();
 
         for (String state : reachableStates) {
-            if (finalStates.contains(state)) {
-                newFinalStates.add(state);
-            } else {
-                nonFinalStates.add(state);
-            }
-        }
-
-        // System.out.println("New Final states: " + newFinalStates);
-        // System.out.println("Non final states: " + nonFinalStates);
-
-        System.out.println("Replacing final states having same transition...");
-
-        // step 3 : replace final states having common transition with one state
-        int finalStateSize = newFinalStates.size();
-        // iterating over new final states
-        for (int i = 0; i < finalStateSize; i++) {
-            for (int j = i + 1; j < finalStateSize; j++) {
-                String state = newFinalStates.get(i);
-                String otherState = newFinalStates.get(j);
-                // if both states have the same transition
-                if (transitions.get(state).equals(transitions.get(otherState))) {
-                    // replace other state with the current state
-                    replaceState(otherState, state);
-                    // System.out.println("replaced " + otherState + " with " + state);
-                    transitions.remove(otherState);
-                    newFinalStates.remove(otherState);
-                    finalStateSize--;
-                    j--; // Adjust the index after removal
+            if (!mergedStates.contains(state)) {
+                for (String otherState : reachableStates) {
+                    if (!state.equals(otherState) && !mergedStates.contains(otherState)) {
+                        if (transitionsEqual(transitions.get(state), transitions.get(otherState))) {
+                            // merge other state with the current state
+                            replaceState(otherState, state);
+                            // mark other state as merged
+                            mergedStates.add(otherState);
+                        }
+                    }
                 }
             }
         }
 
-            // step 4 : replace non-final states having common transition with one state
-        int nonFinalStateSize = nonFinalStates.size();
-        // iterating over new final states
-        for (int i = 0; i < nonFinalStateSize; i++) {
-            for (int j = i + 1; j < nonFinalStateSize; j++) {
-                String state = nonFinalStates.get(i);
-                String otherState = nonFinalStates.get(j);
-                // if both states have the same transition
-                if (transitions.get(state).equals(transitions.get(otherState))) {
-                    // replace other state with the current state
-                    replaceState(otherState, state);
-                    // System.out.println("replaced " + otherState + " with " + state);
-                    transitions.remove(otherState);
-                    nonFinalStates.remove(otherState);
-                    nonFinalStateSize--;
-                    j--; // Adjust the index after removal
-                }
-            }
-        }
+        // Step 3: remove merged states
+        transitions.keySet().removeAll(mergedStates);
+
+        System.out.println("Minimized Transitions: " + transitions);
     }
 
+    public boolean transitionsEqual(HashMap<String, String> transition1, HashMap<String, String> transition2) {
+        if (transition1.size() != transition2.size()) {
+            return false;
+        }
+
+        for (String input : transition1.keySet()) {
+            String nextState1 = transition1.get(input);
+            String nextState2 = transition2.get(input);
+
+            boolean isFinalState1 = finalStates.contains(nextState1);
+            boolean isFinalState2 = finalStates.contains(nextState2);
+
+            if (isFinalState1 != isFinalState2) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    
     public String[] generateStrings() {
         // Check if there is only one state, and it is both the starting and final state
         if (finalStates.size() == 1 && finalStates.contains(startingState) && transitions.size() == 1) {
