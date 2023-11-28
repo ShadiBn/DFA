@@ -58,7 +58,7 @@ public class DFA {
         } else {
             // String ends at a state which is not a final state
             Utility.showError(String.format("Your string ends at state '%s', which is not a final state", currentState));
-            return counter; // Return 1 to indicate False
+            return counter; // Return counter to indicate False
         }
     }
     
@@ -184,16 +184,17 @@ public class DFA {
     
     public String[] generateStrings() {
         // Check if there is only one state, and it is both the starting and final state
-        if (finalStates.size() == 1 && finalStates.contains(startingState) && transitions.size() == 1) {
+        if (finalStates.size() == transitions.size() && finalStates.contains(startingState)) {
             return generateSpecialCaseStrings(4); // Change the count as needed
         }
-    
+        
         String acceptedString1 = generateAcceptedString(6);
         String acceptedString2 = generateAcceptedString(6);
-    
+
+        
         String notAcceptedString1 = generateNotAcceptedString(6);
         String notAcceptedString2 = generateNotAcceptedString(6);
-    
+        
         return new String[]{acceptedString1, acceptedString2, notAcceptedString1, notAcceptedString2};
     }
     
@@ -228,38 +229,75 @@ public class DFA {
     private String generateAcceptedString(int minLength) {
         StringBuilder generatedString = new StringBuilder();
         String currentState = startingState;
-    
-        while (!finalStates.contains(currentState) || generatedString.length() < minLength) {
+
+        int steps = 0;
+        while (generatedString.length() < minLength && steps < 20) {
             HashMap<String, String> currentStateTransitions = transitions.get(currentState);
+
+            if (currentStateTransitions == null || currentStateTransitions.isEmpty()) {
+                // If there are no valid transitions, generate a new string starting from the initial state
+                currentState = startingState;
+                continue;
+            }
+
             String[] inputs = currentStateTransitions.keySet().toArray(new String[0]);
             String randomInput = inputs[(int) (Math.random() * inputs.length)];
             generatedString.append(randomInput);
             currentState = currentStateTransitions.get(randomInput);
+
+            if (finalStates.contains(currentState) && generatedString.length() >= minLength) {
+                break;
+            }
+
+            steps++;
         }
-    
+
+        // Check if the generated string ends in a final state
+        if (!finalStates.contains(currentState)) {
+            // If not, generate a new string
+            return generateAcceptedString(minLength);
+        }
+
         return generatedString.toString();
     }
+
     
-    private String generateNotAcceptedString(int minLength) {
+    public String generateNotAcceptedString(int minLength) {
+        int minimum = minLength;
         StringBuilder generatedString = new StringBuilder();
         String currentState = startingState;
+        int steps = 4;
+        int stepCounter = 0;
     
-        while (generatedString.length() < minLength) {
-            HashMap<String, String> currentStateTransitions = transitions.get(currentState);
-            String[] inputs = currentStateTransitions.keySet().toArray(new String[0]);
-            String randomInput = inputs[(int) (Math.random() * inputs.length)];
-            generatedString.append(randomInput);
-            currentState = currentStateTransitions.get(randomInput);
+        while (stepCounter < steps) {
+            while (generatedString.length() <= minimum) {
+                HashMap<String, String> currentStateTransitions = transitions.get(currentState);
     
-            // If the generated string reaches a final state, remove the last input and continue
-            if (finalStates.contains(currentState)) {
-                generatedString.deleteCharAt(generatedString.length() - 1);
+                String[] inputs = currentStateTransitions.keySet().toArray(new String[0]);
+                String randomInput = inputs[(int) (Math.random() * inputs.length)];
+    
+                generatedString.append(randomInput);
+                currentState = currentStateTransitions.get(randomInput);
             }
+            if (finalStates.contains(currentState)) {
+                currentState = startingState;
+                generatedString.setLength(0);
+                ;
+            } else {
+                return generatedString.toString();
+            }
+            stepCounter++;
+        }
+    
+        if (generatedString.length() == 0) {
+            minimum--;
+            return generateNotAcceptedString(minimum); // Fix: Return the result of the recursive call
         }
     
         return generatedString.toString();
     }
     
+
     
 
 
