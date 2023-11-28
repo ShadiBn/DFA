@@ -262,14 +262,19 @@ public class DFA {
     }
 
     
+    //generate the not accepted String and validate it
     public String generateNotAcceptedString(int minLength) {
         int minimum = minLength;
         StringBuilder generatedString = new StringBuilder();
         String currentState = startingState;
         int steps = 4;
         int stepCounter = 0;
-    
+
+
+        //this while loop make sure to have at most 4 strings tries in each Minimumlength
         while (stepCounter < steps) {
+
+            //generate the string with the specified lenght
             while (generatedString.length() <= minimum) {
                 HashMap<String, String> currentStateTransitions = transitions.get(currentState);
     
@@ -279,16 +284,23 @@ public class DFA {
                 generatedString.append(randomInput);
                 currentState = currentStateTransitions.get(randomInput);
             }
+
+            //check if the last state isn't final for the string to be rejected and set the string to empty if 
+            //it is accepted
             if (finalStates.contains(currentState)) {
                 currentState = startingState;
                 generatedString.setLength(0);
                 ;
-            } else {
+            } 
+            //return the not accepted string
+            else {
                 return generatedString.toString();
             }
             stepCounter++;
         }
     
+        //recursive call to the function if the string lenght was 0 for all the steps that means there is no
+        //rejected string in this length so it decrement the Mininum length and call the function with the new Length
         if (generatedString.length() == 0) {
             minimum--;
             return generateNotAcceptedString(minimum); // Fix: Return the result of the recursive call
