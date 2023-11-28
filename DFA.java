@@ -227,37 +227,46 @@ public class DFA {
     
     
     private String generateAcceptedString(int minLength) {
+        int minimum = minLength;
         StringBuilder generatedString = new StringBuilder();
         String currentState = startingState;
+        int steps = 4;
+        int stepCounter = 0;
 
-        int steps = 0;
-        while (generatedString.length() < minLength && steps < 20) {
-            HashMap<String, String> currentStateTransitions = transitions.get(currentState);
+        //this while loop make sure to have at most 4 strings generated in each Minimumlength
+        while (stepCounter < steps) {
 
-            if (currentStateTransitions == null || currentStateTransitions.isEmpty()) {
-                // If there are no valid transitions, generate a new string starting from the initial state
+            //generate the string with the specified lenght
+            while (generatedString.length() <= minimum) {
+                HashMap<String, String> currentStateTransitions = transitions.get(currentState);
+    
+                String[] inputs = currentStateTransitions.keySet().toArray(new String[0]);
+                String randomInput = inputs[(int) (Math.random() * inputs.length)];
+    
+                generatedString.append(randomInput);
+                currentState = currentStateTransitions.get(randomInput);
+            }
+
+            //check if the last state isn't final and if True repeat the generation
+            if (!finalStates.contains(currentState)) {
                 currentState = startingState;
-                continue;
+                generatedString.setLength(0);
+                ;
+            } 
+            //return the not accepted string
+            else {
+                return generatedString.toString();
             }
-
-            String[] inputs = currentStateTransitions.keySet().toArray(new String[0]);
-            String randomInput = inputs[(int) (Math.random() * inputs.length)];
-            generatedString.append(randomInput);
-            currentState = currentStateTransitions.get(randomInput);
-
-            if (finalStates.contains(currentState) && generatedString.length() >= minLength) {
-                break;
-            }
-
-            steps++;
+            stepCounter++;
         }
-
-        // Check if the generated string ends in a final state
-        if (!finalStates.contains(currentState)) {
-            // If not, generate a new string
-            return generateAcceptedString(minLength);
+    
+        //recursive call to the function if the string lenght was 0 for all the steps that means there is no 
+        //accepted string in this length
+        if (generatedString.length() == 0) {
+            minimum--;
+            return generateAcceptedString(minimum); // Fix: Return the result of the recursive call
         }
-
+    
         return generatedString.toString();
     }
 
@@ -271,7 +280,7 @@ public class DFA {
         int stepCounter = 0;
 
 
-        //this while loop make sure to have at most 4 strings tries in each Minimumlength
+        //this while loop make sure to have at most 4 strings generated in each Minimumlength
         while (stepCounter < steps) {
 
             //generate the string with the specified lenght
