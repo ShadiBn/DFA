@@ -1,8 +1,10 @@
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 public class DFA {
@@ -181,6 +183,78 @@ public class DFA {
     }
     
 
+    public static boolean areEquivalent(DFA dfa1, DFA dfa2) {
+
+        // Minimize both DFAs
+        dfa1.minimizeDFA();
+        dfa2.minimizeDFA();
+    
+        // Initialize the initial pair
+        String startingState1 = dfa1.getStartingState();
+        String startingState2 = dfa2.getStartingState();
+    
+        Set<String> initialPair = new HashSet<>();
+        initialPair.add(startingState1);
+        initialPair.add(startingState2);
+    
+        // Set to keep track of processed pairs
+        Set<Set<String>> processedPairs = new HashSet<>();
+    
+        // Queue for BFS traversal of pairs
+        Queue<Set<String>> queue = new ArrayDeque<>();
+        queue.add(initialPair);
+        processedPairs.add(initialPair);
+    
+        while (!queue.isEmpty()) {
+            Set<String> currentPair = queue.poll();
+    
+            // Get the transitions for both DFAs
+            HashMap<String, HashMap<String, String>> transition_dfa1 = dfa1.getTransitions();
+            HashMap<String, HashMap<String, String>> transition_dfa2 = dfa2.getTransitions();
+    
+            // Get valid inputs for transitions
+            HashMap<String, String> currentStateTransitions1 = transition_dfa1.get(currentPair.iterator().next());
+            HashMap<String, String> currentStateTransitions2 = transition_dfa2.get(currentPair.toArray()[1]);
+    
+            // Check if either set of transitions is null
+            if (currentStateTransitions1 == null || currentStateTransitions2 == null) {
+                continue;
+            }
+    
+            for (String input : currentStateTransitions1.keySet()) {
+                Set<String> nextPair = new HashSet<>();
+    
+                // Get the next states for both DFAs using the current input
+                String nextState1 = currentStateTransitions1.get(input);
+                String nextState2 = currentStateTransitions2.get(input);
+    
+                // Add states to the next pair set
+                nextPair.add(nextState1);
+                nextPair.add(nextState2);
+    
+                if (!processedPairs.contains(nextPair)) {
+                    processedPairs.add(nextPair);
+                    queue.add(nextPair);
+                }
+    
+                // Check if the states in the pair are of the same type (final or non-final)
+                if (!sameType(dfa1, dfa2, nextPair)) {
+                    return false; // DFAs are not equivalent
+                }
+            }
+        }
+    
+        return true; // DFAs are equivalent
+    }
+    
+
+    // Check if states in a pair are of the same type
+    private static boolean sameType(DFA dfa1, DFA dfa2, Set<String> pair) {
+        boolean isFinalState1 = dfa1.getFinalStates().contains(pair.iterator().next());
+        boolean isFinalState2 = dfa2.getFinalStates().contains(pair.toArray()[1]);
+
+        return isFinalState1 == isFinalState2;
+    }
     
     public String[] generateStrings() {
         // Check if there is only one state, and it is both the starting and final state
